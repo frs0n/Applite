@@ -8,6 +8,7 @@
 import SwiftUI
 import OSLog
 import ButtonKit
+import DebouncedOnChange
 
 struct ContentView: View {
     @EnvironmentObject var caskManager: CaskManager
@@ -46,7 +47,19 @@ struct ContentView: View {
         }
         // MARK: - Search
         .searchable(text: $searchInput, placement: .sidebar)
-        // Submit search
+        // Live search with debounce
+        .task(id: searchInput, debounceTime: .milliseconds(300)) {
+            if searchInput.isEmpty {
+                showSearchResults = false
+            } else {
+                await searchAndSort()
+                showSearchResults = true
+                if selection != .home {
+                    selection = .home
+                }
+            }
+        }
+        // Submit search (immediate, bypasses debounce)
         .onSubmit(of: .search) {
             Task {
                 await searchAndSort()
@@ -60,13 +73,10 @@ struct ContentView: View {
                 }
             }
         }
-        // Clear search
+        // Limit search characters
         .onChange(of: searchInput) { newValue in
-            // Limit search characters
-            searchInput = String(searchInput.prefix(30))
-
-            if searchInput.isEmpty {
-                showSearchResults = false
+            if searchInput.count > 30 {
+                searchInput = String(searchInput.prefix(30))
             }
         }
         // Apply sorting options
