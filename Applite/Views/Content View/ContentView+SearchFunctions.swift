@@ -15,6 +15,15 @@ extension ContentView {
         await sortCasks(ignoreBestMatch: true)
     }
 
+    /// Runs a search and updates the UI state to show results on the home screen.
+    func performSearch() async {
+        await searchAndSort()
+        showSearchResults = true
+        if selection != .home {
+            selection = .home
+        }
+    }
+
     func filterUnpopular(threshold: Int = 500) async {
         caskManager.allCasks.filterSearch { casks in
             casks.filter { $0.downloadsIn365days > threshold }

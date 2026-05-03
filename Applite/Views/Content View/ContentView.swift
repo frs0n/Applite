@@ -52,31 +52,21 @@ struct ContentView: View {
             if searchInput.isEmpty {
                 showSearchResults = false
             } else {
-                await searchAndSort()
-                showSearchResults = true
-                if selection != .home {
-                    selection = .home
-                }
+                await performSearch()
             }
         }
         // Submit search (immediate, bypasses debounce)
         .onSubmit(of: .search) {
             Task {
-                await searchAndSort()
-
                 if !searchInput.isEmpty {
-                    showSearchResults = true
-
-                    if selection != .home {
-                        selection = .home
-                    }
+                    await performSearch()
                 }
             }
         }
         // Limit search characters
         .onChange(of: searchInput) { newValue in
-            if searchInput.count > 30 {
-                searchInput = String(searchInput.prefix(30))
+            if newValue.count > 30 {
+                searchInput = String(newValue.prefix(30))
             }
         }
         // Apply sorting options
